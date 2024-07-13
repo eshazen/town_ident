@@ -10,8 +10,11 @@
  *   k <code>          on key press
  */
 
-// display received UART data
-#define UART_LCD
+// display raw lat/lon for debug
+// #define RAW_LATLON
+
+// convert lat/lon to float and lookup town
+#define TOWN_LATLON
 
 #include <stdio.h>
 #include <avr/io.h>
@@ -26,8 +29,27 @@
 // #include "kb.h"
 #include "uart_int.h"
 #include "led.h"
+#include "parsing.h"
 
-static char buff[500];
+static char buff[80];
+static char latlon[80];
+static char* toks[10];
+
+static float lat_deg;
+static float lon_deg;
+
+#ifdef TOWN_LATLON
+#include "places_ma.h"
+static float dist;
+static int inam;
+static float t_lat;
+static float t_lon;
+static float t_dist;
+
+static float p_lat;
+
+#endif
+
 
 // static int16_t this_shaft;
 // static uint8_t esc;
@@ -42,6 +64,7 @@ uint32_t ms;
 uint8_t pos = 0;
 uint8_t ch;
 uint8_t leds = 0;
+uint8_t latlon_v = 0;
 
 int main (void)
 {
@@ -76,20 +99,72 @@ int main (void)
 
 	USART0GetString( buff, sizeof(buff));
 
-	if( !strncmp( buff, "GPGLL", 5)) {
-	  lcd_cls();
-	  lcd_puts( buff);
-	  if( strlen( buff) > 16) {
-	    lcd_addr( 40);
-	    lcd_puts( buff+16);
-	  }
+	if( !strncmp( buff+2, "GLL", 3)) {
+	  strncpy( latlon, buff, sizeof(latlon));
+	  latlon_v = 1;
 	}
-	
-
       }
 
       set_leds( leds);
+    }
 
+    if( latlon_v) {
+      latlon_v = 0;
+      int nt = split( latlon, toks, sizeof(toks)/sizeof(toks[0]));
+
+#ifdef TOWN_LATLON
+      if( nt >= 4 && *toks[2] == 'N' && *toks[4] == 'W') {
+	// convert lat/lon
+	lat_deg = conv_ll( toks[1]);
+	lon_deg = -conv_ll( toks[3]);
+
+	// find closest town
+	dist = 1e10;
+	inam = 0;
+	strcpy( buff, "xxx");
+	for( int i=0; i<NUM_PLACES; i++) {
+	  t_lat = pgm_read_float( &lats[i]);
+	  t_lon = pgm_read_float( &lons[i]);
+	  t_dist = sqrt( (t_lat-lat_deg)*(t_lat-lat_deg)+(t_lon-lon_deg)*(t_lon-lon_deg) );
+	  if( t_dist < dist) {
+	    p_lat = t_lat;
+	    dist = t_dist;
+	    inam = i;
+	  }
+	}
+	// print closest town
+	lcd_cls();
+	sprintf( buff, "%4.2f ", dist);
+	lcd_puts( buff);
+	strcpy_P( buff, (const char*) pgm_read_ptr( &(name_table[inam])));
+	lcd_puts( buff);
+	lcd_addr(40);
+	sprintf( buff, "%7.3f,%7.3f", lat_deg, lon_deg);
+	lcd_puts( buff);
+      }
+#endif      
+
+#ifdef RAW_LATLON
+      // display raw lat/lon as received for debug
+      if( nt >= 4 && *toks[2] == 'N' && *toks[4] == 'W') {
+	lcd_cls();
+	lcd_puts( toks[1]);
+	lcd_putc( ',');
+	lcd_puts( toks[3]);
+	lcd_putc( ' ');
+
+	// convert lat/lon
+	lat_deg = conv_ll( toks[1]);
+	lon_deg = -conv_ll( toks[3]);
+	lcd_addr(40);
+	sprintf(buff, "[%8.3f,", lat_deg);
+	lcd_puts( buff);
+	sprintf(buff, "%8.3f]", lon_deg);
+	lcd_puts( buff);
+      }
+
+
+#endif
     }
   }
 

@@ -1,28 +1,32 @@
-# control panel demo
+# ma_ident
 
-Simple software to implement a remote control panel.
+Initial software to identify nearest town in MA
 
-Shaft encoder counts up on clockwise rotation, down on counter-clockwise
-Pressing the shaft encoder button sets the count to zero
+GPS powers up and starts sending a blast of stuff at 1Hz.
+All we care about is the `$GPGLL` record, which has 10 fields
+separated by commas.
 
-4 other buttons act as a keyboard with 4-character type ahead
+| No | Name    | Format      | Example     | Description            |
+|----|---------|-------------|-------------|------------------------|
+| 0  | xxGLL   | string      | $GPGLL      | GLL message ID         |
+| 1  | lat     | ddmm.mmmmm  | 4717.11364  | Latitude, deg and min  |
+| 2  | NS      | char        | N           | N/S indicator          |
+| 3  | lon     | dddmm.mmmmm | 04333.91565 | Longitude, deg and min |
+| 4  | EW      | char        | W           | E/W indicator          |
+| 5  | time    | hhmmss.ss   | 092321.00   | UTC time               |
+| 6  | status  | char        | A           | Data valid status      |
+| 7  | posMode | char        | A           | Positioning mode       |
+| 8  | cs      | hex         | *60         | checksum               |
+| 9  | eol     | char        | CR,LF       | CR and LF terminator   |
 
-Sends serial data at 38400 baud:
+### Latitude and Longitude format
 
-    e <value>    encoder value, updated on any change (signed 16-bit value)
-    k <value>    key press value; 1-4 for buttons, 5 for encoder button
-  
-Received data is sent to LCD for display
+Received format is `ddmm.mmmmm` for latitude and `dddmm.mmmmm` for
+longitude.  `dd` or `ddd` is integer degrees.  `mm.mmmmm` is
+floating point minutes.
 
-    ^A clears screen and homes cursor
-	^C moves cursor to start of 1st line
-    ^B moves cursor to start of 2nd line
-    ESC <char>   sets LEDs to low 4 bits of <char>
-	             bit 0 - D1
-				 bit 1 - D2
-				 bit 3 - Encoder Green
-				 bit 4 - Encoder Red
+The best way to determine that there is valid position data is just to
+observe that fields 1-4 have non-zero length contents.
 
-All printable ASCII codes are displayed at the cursor position
 
 

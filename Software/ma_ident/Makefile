@@ -10,11 +10,11 @@ F_OSC = 8000000
 # 16MHz for Stock arduino
 # F_OSC = 16000000
 
-CFLAGS = -g -Os -mmcu=$(MCU) $(EXTRAOPT) -DF_CPU=$(F_OSC) -Wl,-u,vfprintf -lprintf_min -lm
-# no-optimization settings for interrupt code
-CFLAGS_NOOPT = -g -O0 -mmcu=$(MCU) $(EXTRAOPT) -DF_CPU=$(F_OSC) -I../util -Wl,-u,vfprintf -lprintf_min
+# CFLAGS = -g -Os -mmcu=$(MCU) $(EXTRAOPT) -DF_CPU=$(F_OSC) -Wl,-u,vfprintf -lprintf_min -lm
+# with float
+CFLAGS = -g -Os -mmcu=$(MCU) $(EXTRAOPT) -DF_CPU=$(F_OSC) -Wl,-u,vfprintf -lprintf_flt -lm
 
-LDFLAGS = -Wl,-Map=$(<:.o=.map),--cref -mmcu=$(MCU)
+LDFLAGS = -Wl,-Map=$(<:.o=.map),--cref,-u,vfprintf -mmcu=$(MCU) -lprintf_flt -lm
 
 # lfuse default 0x62 write as 0xe2 to disable CLKDIV8
 FUSEOPT = -U lfuse:w:0xe2:m
@@ -35,9 +35,9 @@ DUDEPORT  = -c avrispv2 -P usb
 DUDEMCU = m328p
 AVRDUDE  = avrdude $(DUDEPORT) -p $(DUDEMCU) -y -u 
 
-objects = main.o lcd.o shaft.o timer.o kb.o uart_int.o ioport.o led.o
+objects = main.o lcd.o shaft.o timer.o kb.o uart_int.o ioport.o led.o parsing.o
 
-headers = lcd.h shaft.h timer.h kb.h uart_int.h ioport.h led.h
+headers = lcd.h shaft.h timer.h kb.h uart_int.h ioport.h led.h parsing.h
 
 
 all: $(objects)  main.hex list
