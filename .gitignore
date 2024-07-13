@@ -8,6 +8,12 @@ auto-save-list
 tramp
 .\#*
 
+*.o
+*.elf
+*.hex
+*.map
+*.lis
+
 # Org-mode
 .org-id-locations
 *_archive
