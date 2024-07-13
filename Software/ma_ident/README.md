@@ -25,8 +25,20 @@ Received format is `ddmm.mmmmm` for latitude and `dddmm.mmmmm` for
 longitude.  `dd` or `ddd` is integer degrees.  `mm.mmmmm` is
 floating point minutes.
 
-The best way to determine that there is valid position data is just to
-observe that fields 1-4 have non-zero length contents.
+The code checks the fields 2 and 4 are 'N' and 'W' respectively.
+(this has to be fixed for the southern or eastern hemispheres!)
+
+### Database
+
+Data is obtained from the US Census
+[link](https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2023&layergroup=Places).
+
+Select a state, get a zip file.  In the zip is a dBase III file, e.g.
+`tl_2023_25_place.dbf`.  Create a text dump using unix `dbview`.
+Convert to C source using `place_to_c.pl` in the `Tools` folder.
+This creates a database which will be stored in flash memory on the
+AVR.
+
 
 
 

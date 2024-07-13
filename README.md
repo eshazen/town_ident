@@ -13,4 +13,3 @@ Select a state, get a zip file.  In the zip is a dBase III file, e.g.
        Infodrom Oldenburg
        joey@infodrom.north.de
 
-
