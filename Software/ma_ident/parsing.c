@@ -2,23 +2,27 @@
 
 
 //
-// split a comma-separated string to up to siz tokens
+// split a comma-separated (or other delim) string to up to siz tokens
 // return token count
 //
+// NOTE:  overwrites string by terminating tokens with '\0'
+#
+#define SPLIT_DELIM ','
+
 int split( char *str, char **toks, int siz) {
-  char *p = str;
-  int nt = 0;
+  char *p = str;		/* point to start of string */
+  int nt = 0;			/* token counter */
   
-  while( *p) {
-    toks[nt++] = p;
-    while( *p && *p != ',')		/* skip over non-delims */
+  while( *p && nt < siz) {  /* loop to string end or over siz */
+    toks[nt++] = p;	    /* always point to token here */
+    while( *p && *p != SPLIT_DELIM)	/* skip over non-delims */
       ++p;
     // check if delim or end of string
-    if( *p) {  // delim
-      // check for trailing delim
-      if( !p[1])
-	toks[nt++] = p+1;
-      *p = '\0';
+    if( *p) {  // non-null char must be delim
+      // check for empty token
+      if( !p[1])	    /* is this the end of the string */
+	toks[nt++] = p+1;   /* yes, add pointer to enpty token */
+      *p = '\0';	    /* and terminate it */
       ++p;
     }
   }
