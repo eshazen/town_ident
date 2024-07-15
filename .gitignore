@@ -12,7 +12,7 @@ tramp
 *.elf
 *.hex
 *.map
-*.lis
+*.lst
 
 # Org-mode
 .org-id-locations
